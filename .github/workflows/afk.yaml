@@ -1,0 +1,46 @@
+name: Minecraft AFK Bot
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360   # hard cap at 6h
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download bot.js
+        run: |
+          curl -fsSL -o bot.js \
+            https://raw.githubusercontent.com/clarary0101-sketch/larpy-afk/refs/heads/main/bot.js
+
+      - name: Install mineflayer
+        run: |
+          npm init -y
+          npm install mineflayer
+          npm pkg set type=module
+
+      - name: Run bot for 5h59m
+        env:
+          MC_HOST: play.leztusasmp.xyz
+          MC_PORT: "25565"
+          MC_USERNAME: larpy
+          MC_VERSION: "1.21.1"
+        run: |
+          node bot.js &
+          BOT_PID=$!
+          echo "Bot started with PID $BOT_PID"
+
+          # Sleep 5h 59m = 21540 seconds, then stop
+          sleep 21540
+
+          kill $BOT_PID 2>/dev/null || true
+          echo "5h59m elapsed, stopping bot."
